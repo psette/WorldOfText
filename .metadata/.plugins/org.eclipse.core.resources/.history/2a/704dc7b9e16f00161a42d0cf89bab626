@@ -1,0 +1,10 @@
+import java.awt.Rectangle;
+
+import client.FactoryObject;
+
+public class FactoryWall extends FactoryObject {
+	public FactoryWall(Rectangle inDimensions) {
+		super(inDimensions);
+	}
+
+}

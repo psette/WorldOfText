@@ -1,0 +1,368 @@
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Scanner;
+import java.util.Arrays;
+import java.util.Random;
+
+public class Jeopardy {
+	private static BufferedReader br;
+	private static BufferedReader runner;
+	private static String[] categories = new String[5];
+	private static Question[] questions = new Question[25];
+	private static int[] pointTotals = new int[5];
+	private static int questionEmptyIndex = 0, numTeamsInt = 0, teamUp = 0;
+	private static Team[] teams;
+	@SuppressWarnings("unused")
+	private static Question final_jeopardy;;
+
+	public static void ReadFileToBufferedReader(String filename) {
+		try {
+			br = new BufferedReader(new FileReader(filename));
+			runner = new BufferedReader(new FileReader(filename));
+		} catch (FileNotFoundException fnfe) {
+			System.out.println(fnfe.getMessage());
+		}
+	}
+
+	public static String[] ReadSection(String currLine) {
+		String[] section;
+		section = currLine.split("::");
+		boolean isValid = (8 == currLine.length() - currLine.replace("::", "").length());
+		try {
+			if (!isValid) {
+				throw new Exception("Check count. ");
+			}
+			for (int i = 0; i < 5; ++i) {
+				for (int j = i + 1; j < 5; ++j) {
+					if (section[i] == section[j]) {
+						isValid = false;
+						throw new Exception("Duplicates in line. ");
+					}
+				}
+			}
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+		return section;
+	}
+
+	public static int CheckValid(String[] sections) throws Exception {
+		boolean isValidCategory = false;
+		boolean isValidPoint = false;
+		int questionPoint = Integer.parseInt(sections[1]);
+		for (int i = 0; i < 5; ++i) {
+			if (sections[0].equals(categories[i])) {
+				isValidCategory = true;
+			}
+			if (questionPoint == pointTotals[i]) {
+				isValidPoint = true;
+			}
+		}
+		if (!isValidPoint && !isValidCategory) {
+			throw new Exception("Point and Category invalid for question: " + sections[2]);
+		} else if (!isValidPoint) {
+			throw new Exception("Point invalid for question: " + sections[2]);
+		} else if (!isValidCategory) {
+			throw new Exception("Category invalid for question: " + sections[2]);
+		}
+		for (int i = 0; i < 25; ++i) {
+			if (questions[i] == null) {
+				break;
+			}
+			if (sections[0].equals(questions[i].getCategory()) && questionPoint == questions[i].getPoints()) {
+				throw new Exception("Duplicate question");
+			}
+		}
+		return questionPoint;
+	}
+
+	public static void ReadQuestions() {
+		String currLine;
+		try {
+			for (runner.readLine(), currLine = br.readLine(); currLine != null; currLine = br.readLine()) {
+				String scanner_constructor_string = currLine;
+				if (runner.ready()) {
+					while (!runner.readLine().startsWith("::")) {
+						currLine = br.readLine();
+						if (currLine.startsWith(".")) {
+							currLine = br.readLine();
+							runner.readLine();
+							continue;
+						}
+						scanner_constructor_string += currLine;
+					}
+				}
+				Scanner scanner = new Scanner(scanner_constructor_string);
+				scanner.useDelimiter("::");
+				if (scanner_constructor_string.length() - scanner_constructor_string.replace("::", "").length() != 8) {
+					if (scanner_constructor_string.startsWith("::FJ")) {
+						if (scanner_constructor_string.length()
+								- scanner_constructor_string.replace("::", "").length() == 6) {
+							final_jeopardy = new Question(-1, scanner.next(), scanner.next(), scanner.next());
+							continue;
+						}
+					}
+					scanner.close();
+					throw new Exception("Invalid Formatting");
+				}
+				String[] sections = { scanner.next(), scanner.next(), scanner.next(), scanner.next() };
+				int questionPoint = CheckValid(sections);
+				scanner.close();
+				questions[questionEmptyIndex++] = new Question(questionPoint, sections[0], sections[2], sections[3]);
+			}
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+	}
+
+	public static Question getQuestion(String questionCategory, int questionPoint) {
+		for (int i = 0; i < 25; ++i) {
+			if (questionCategory.equals(questions[i].getCategory()) && questionPoint == questions[i].getPoints()) {
+				return questions[i];
+			}
+		}
+		return null;
+	}
+
+	public static boolean questionIsAsked(String questionCategory, int questionPoint) {
+		Question q = getQuestion(questionCategory, questionPoint);
+		if (q != null) {
+			return q.isAsked();
+		}
+		return false;
+	}
+
+	public static void printBoard() {
+		System.out.println("Team Scores:");
+		for (int i = 0; i < numTeamsInt; ++i) {
+			System.out.println(teams[i].getName() + ":\t" + teams[i].getPoints());
+		}
+		System.out.println();
+		for (int i = 0; i < 5; ++i) {
+			System.out.print(categories[i] + "\t\t");
+		}
+		System.out.println();
+		for (int i = 0; i < 5; ++i) {
+			for (int j = 0; j < 5; ++j) {
+				if (questionIsAsked(categories[j], pointTotals[i])) {
+					System.out.print("X\t\t");
+				} else {
+					System.out.print(pointTotals[i] + "\t\t");
+				}
+			}
+			System.out.println();
+		}
+	}
+
+	public static boolean playGame() {
+		Scanner sc = new Scanner(System.in);
+		Random r = new Random();
+		teamUp = r.nextInt(numTeamsInt);
+		for (int i = 0; i < 25; ++i) {
+			if (teamUp == numTeamsInt) {
+				teamUp = 0;
+			}
+			System.out.println("It is team " + teams[(i % numTeamsInt)].getName()
+					+ "'s turn. Please select a category from the board.");
+			String categorySelected = sc.nextLine();
+			if (specialCase(categorySelected)) {
+				return true;
+			}
+			while (!validCategory(categorySelected)) {
+				System.out.println("Please select one of the following categories: ");
+				for (int j = 0; j < 5; ++j) {
+					System.out.print(categories[j] + "\t");
+				}
+				categorySelected = sc.nextLine();
+				if (specialCase(categorySelected)) {
+					return true;
+				}
+			}
+			System.out.println("Please select a point ammount from the board.");
+			String pointSelected = sc.nextLine();
+			if (specialCase(pointSelected)) {
+				return true;
+			}
+			Question question = getQuestion(categorySelected, Integer.parseInt(pointSelected));
+			while (question == null) {
+				System.out.println("Please select one of the points remaining on the board.");
+				pointSelected = sc.nextLine();
+				if (specialCase(pointSelected)) {
+					return true;
+				}
+				question = getQuestion(categorySelected, Integer.parseInt(pointSelected));
+			}
+			if (AskQuestion(question, sc)) {
+				return true;
+			}
+			printBoard();
+		}
+		if (FinalJeopardy(sc)) {
+			return true;
+		}
+		sc.close();
+		return false;
+	}
+
+	private static boolean FinalJeopardy(Scanner sc) {
+		for (int i = 0; i < numTeamsInt; ++i) {
+			if (teams[i].getPoints() < 0) {
+				System.out.println("Sorry " + teams[i].getName() + " you can't bet because you're in the negative!");
+				teams[i].modifyFinalJeopardy(0);
+				continue;
+			}
+			System.out.println(
+					teams[i].getName() + " please enter an ammount to bet, between 0 and" + teams[i].getPoints() + ".");
+			String betAsString = sc.nextLine();
+			if (specialCase(betAsString)) {
+				return true;
+			}
+			int bet = Integer.parseInt(betAsString);
+			while (bet < 0 && bet > teams[i].getPoints()) {
+				System.out.println(teams[i].getName() + " please enter an ammount to bet, between 0 and"
+						+ teams[i].getPoints() + ".");
+				betAsString = sc.nextLine();
+				if (specialCase(betAsString)) {
+					return true;
+				}
+				bet = Integer.parseInt(betAsString);
+			}
+			teams[i].modifyFinalJeopardy(bet);
+		}
+		System.out.println("The question is:\n" + final_jeopardy.getQuestion());
+		int winning_score = Integer.MIN_VALUE;
+		Team winner = null;
+		for (int i = 0; i < numTeamsInt; ++i) {
+			if (teams[i].getPoints() < 0) {
+				System.out.println("Sorry " + teams[i].getName() + " you can't answer because you're in the negative!");
+				continue;
+			}
+			System.out.println(teams[i].getName() + " please enter an answer.");
+			String answer = sc.nextLine();
+			if (specialCase(answer)) {
+				return true;
+			}
+			if(answerIsCorrect(final_jeopardy, answer, i)){
+				teams[i].correctFinal();
+			} else{
+				teams[i].wrongFinal();
+			}
+			if(teams[i].getPoints() > winning_score){
+				winning_score = teams[i].getPoints();
+				winner = teams[i];
+			}
+		}
+		System.out.println(x);
+		return false;
+	}
+
+	private static boolean specialCase(String input) {
+		if (input.toLowerCase().equals("exit")) {
+			System.exit(0);
+		}
+		return input.toLowerCase().equals("replay");
+	}
+
+	private static boolean AskQuestion(Question question, Scanner sc) {
+		question.ask();
+		System.out.println(question.getQuestion());
+		String answer = sc.nextLine();
+		if (specialCase(answer)) {
+			return true;
+		}
+		if (answerIsCorrect(question, answer, teamUp)) {
+			teams[teamUp].ModifyPoints(question.getPoints());
+			System.out.println("Congrats! Correct answer!!");
+		} else {
+			teams[teamUp].ModifyPoints(-question.getPoints());
+			System.out.println("Sorry, that answer is incorrect. The correct answer was\n" + question.getAnswer());
+		}
+		System.out.println(teams[teamUp].getName() + "'s score is now " + teams[teamUp].getPoints() + " points.");
+		return false;
+	}
+
+	private static boolean answerIsCorrect(Question question, String answerSupplied, int team) {
+		String correctAnswer = question.getAnswer().toLowerCase();
+		if (!correctAnswer.startsWith("who") || !correctAnswer.startsWith("what") || !correctAnswer.startsWith("where")
+				|| correctAnswer.startsWith("when")) {
+			if (teams[team].alreadyWarned()) {
+				return false;
+			} else {
+				System.out.println("You must answer as a question, do that once more for a penalty.");
+			}
+		}
+
+		return answerSupplied.contains(correctAnswer);
+	}
+
+	private static boolean validCategory(String categorySelected) {
+		for (int i = 0; i < 5; ++i) {
+			if (categorySelected.equals(categories[i])) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static void main(String[] args) {
+		boolean replay = true;
+		while (replay) {
+			replay = false;
+			System.out.println("Welcome to Jeopardy!");
+			System.out.println("Please enter the number of teams playing this game: ");
+			Scanner sc = new Scanner(System.in);
+			String numTeams = sc.nextLine();
+			if (specialCase(numTeams)) {
+				replay = true;
+				continue;
+			}
+			while (('1' > numTeams.charAt(0) && '5' < numTeams.charAt(0)) || numTeams.length() != 1) {
+				System.out.println("Invalid entry, please try again.");
+				numTeams = sc.nextLine();
+				if (specialCase(numTeams)) {
+					replay = true;
+					continue;
+				}
+			}
+			numTeamsInt = Integer.parseInt(numTeams);
+			teams = new Team[numTeamsInt];
+			for (int i = 1; i <= numTeamsInt; ++i) {
+				System.out.println("Enter a team name for Team " + i);
+				String name = sc.nextLine();
+				if (specialCase(name)) {
+					replay = true;
+					continue;
+				}
+				teams[i - 1] = new Team(name);
+				System.out.println(teams[i - 1].getName());
+			}
+			System.out.println("Thank you! Setting up game for you...");
+			try {
+				ReadFileToBufferedReader(args[0]);
+				categories = ReadSection(br.readLine());
+				String[] tempPointTotals = ReadSection(br.readLine());
+				runner.readLine();
+				runner.readLine();
+				for (int i = 0; i < 5; ++i) {
+					pointTotals[i] = Integer.parseInt(tempPointTotals[i]);
+				}
+				ReadQuestions();
+			} catch (IOException ioe) {
+				System.out.println(ioe.getMessage());
+			}
+			System.out.println("Ready to Play!\n");
+			Arrays.sort(pointTotals);
+			Arrays.sort(categories);
+			printBoard();
+			try {
+				replay = playGame();
+				continue;
+			} catch (Exception e) {
+				System.out.println("Error playing game");
+			}
+			sc.close();
+		}
+	}
+}

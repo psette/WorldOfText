@@ -1,0 +1,5 @@
+INDEX VERSION 1.129+/Users/pietrosette/Documents/workspace/.metadata/.plugins/org.eclipse.jdt.core
+551405086.index
+2951276428.index
+3225776049.index
+3393784884.index

@@ -1,0 +1,20 @@
+
+public class Question {
+	private int points_;
+	private String category_, question_, answer_;
+	
+	public Question(int points, String category, String question, String answer) {
+		points_ = points;
+		category_ = category;
+		question_ = question;
+		answer_ = answer;
+	}
+	
+	public int getPoints(){
+		return points_;
+	}
+	
+	public String getCategory(){
+		return category_;
+	}
+}

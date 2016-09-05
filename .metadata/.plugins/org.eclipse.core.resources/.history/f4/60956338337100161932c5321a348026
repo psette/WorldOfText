@@ -1,0 +1,20 @@
+
+public class Team {
+	private String name_;
+	private int points_;
+	private int final_jeopardy_;
+	
+	public Team(String name){
+		name_ = name;
+		points_ = 0;
+		final_jeopardy_ = 0;
+	}
+	
+	public void ModifyPoints(int change){
+		points_ += change;
+	}
+	
+	public void FinalJeopardy(int ammount){
+		final_jeopardy_ = ammount;
+	}
+}
