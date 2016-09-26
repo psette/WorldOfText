@@ -79,6 +79,7 @@ public class FinalPage extends JPanel {
 			});
 			ansButtons[i] = new JButton("Submit answer");
 			ansButtons[i].setEnabled(false);
+			temp.add(new JLabel(teams.get(i).getTeamName()));
 			temp.add(blankFields[i]);
 			temp.add(ansButtons[i]);
 			main.add(temp);
