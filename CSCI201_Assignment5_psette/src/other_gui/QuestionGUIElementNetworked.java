@@ -26,6 +26,8 @@ public class QuestionGUIElementNetworked extends QuestionGUIElement {
 	int teamIndex;
 	int numTeams;
 	public Timer clockTimer;
+	public Timer fishTimer;
+
 	private MainGUINetworked gui;
 	// stores team index as the key to a Boolean indicating whether they have
 	// gotten a chance to answer the question
@@ -78,6 +80,8 @@ public class QuestionGUIElementNetworked extends QuestionGUIElement {
 					i = 0;
 				}
 				if (!questionPanel.isVisible()) {
+					((Timer) e.getSource()).removeActionListener(this);
+
 					((Timer) e.getSource()).stop();
 				}
 			}
@@ -87,7 +91,7 @@ public class QuestionGUIElementNetworked extends QuestionGUIElement {
 	}
 
 	private void setFish() {
-		clockTimer = new Timer(200, new ActionListener() {
+		fishTimer = new Timer(200, new ActionListener() {
 			int i = 0;
 
 			@Override
@@ -95,18 +99,26 @@ public class QuestionGUIElementNetworked extends QuestionGUIElement {
 				if (fishImages == null) {
 					fishImages = gui.fishImages;
 				}
+				if (announcementsLabel.getText().contains("Buzz")) {
+					announcementsLabel.setText("Fish should be removed but this assignment is reallllly hard");
+					((Timer) e.getSource()).removeActionListener(this);
+					((Timer) e.getSource()).stop();
+
+				}
 				announcementsLabel.setIcon(fishImages.get(i));
 				i++;
 				if (i == fishImages.size() - 1) {
 					i = 0;
 				}
 				if (!questionPanel.isVisible()) {
+					((Timer) e.getSource()).removeActionListener(this);
+
 					((Timer) e.getSource()).stop();
 				}
 			}
 
 		});
-		clockTimer.start();
+		fishTimer.start();
 	}
 
 	// overrides the addActionListeners method in super class
