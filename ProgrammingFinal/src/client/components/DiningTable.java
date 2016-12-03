@@ -19,8 +19,6 @@ public class DiningTable extends FactoryObject {
 	public static void sitDown() {
 
 		try {
-			semaphore.acquire(1);
-
 			Thread.sleep(5000);
 
 		} catch (InterruptedException e) {
@@ -33,8 +31,5 @@ public class DiningTable extends FactoryObject {
 		semaphore.release();
 	}
 
-	public synchronized static boolean isReady() {
-		return semaphore.availablePermits() != 0;
-	}
 }
 // create the resources

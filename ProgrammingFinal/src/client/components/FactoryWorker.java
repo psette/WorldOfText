@@ -115,6 +115,7 @@ public class FactoryWorker extends FactoryObject implements Runnable, FactoryRep
 					// currently
 					// locked
 					CoffeShop.getThere(mLabel);
+					DiningTable.semaphore.acquire();
 
 				}
 				{

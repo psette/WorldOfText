@@ -23,13 +23,6 @@ public class CoffeShop extends FactoryObject {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		while (!DiningTable.isReady()) {
-			try {
-				Thread.sleep(10);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
 	}
 
 }
